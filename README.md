@@ -4,7 +4,7 @@ This Web application in Java is migrated using Copilot, from struts. The origina
 https://github.com/josesanchezr/struts2-project
 
 ### Pre requirements
-Install Jdk 17
+#### 1. Install Jdk 17
 
 http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
@@ -12,7 +12,7 @@ Setup JAVA_HOME environment variable
 
 `set JAVA_HOME=C:\Program Files\Java\jdk17.0.12`
 
-Install maven
+#### 2. Install maven
 
 https://maven.apache.org/install.html
 
@@ -22,7 +22,9 @@ https://maven.apache.org/install.html
 To install this web application make the following steps:
 
 #### 1. Clone the project
-`create local directory, example mkdir project-example`
+Create local directory, example: 
+
+`mkdir project-example`
 
 `cd project-example`
 
