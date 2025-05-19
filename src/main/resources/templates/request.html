@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Institution/Branch Management</title>
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet"
+          href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+</head>
+<body>
+<div class="container">
+    <h3>Request a new institution or branch</h3>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            Please enter the institution as "Partner," the legal entity.<br>
+            The name of the institution should be in its official language.
+            (e.g. For CIAT: Centro Internacional de Agricultura Tropical)
+        </div>
+    </div>
+
+    <!-- Institution/Branch Request Form -->
+    <form id="requestForm">
+        <div class="form-group">
+            <label for="headquarter">Is this institution a branch?</label>
+            <select class="form-control" id="headquarter" name="headquarter">
+                <option value="Yes">Yes (Branch)</option>
+                <option value="No">No (Headquarter)</option>
+            </select>
+        </div>
+        <div class="form-group" id="div_institution" style="display:none;">
+            <label for="institution">Select institution headquarter:*</label>
+            <select class="form-control" id="institution" name="institution">
+                <option value="">Select an option...</option>
+                <option th:each="inst : ${institutions}" th:value="${inst.name}" th:text="${inst.name}"></option>
+            </select>
+            <span id="msg_institution" style="display: none;" class="label label-warning">Select one institution</span>
+        </div>
+        <div class="form-group">
+            <label for="acronym">Acronym:</label>
+            <input type="text" class="form-control" id="acronym" name="acronym" placeholder="Acronym">
+            <span id="msg_acronym" style="display: none;" class="label label-warning">It must be less than 10 characters</span>
+        </div>
+        <div class="form-group">
+            <label for="name">Name:*</label>
+            <input type="text" class="form-control" id="name" name="name" placeholder="Name">
+            <span id="msg_name" style="display: none;" class="label label-warning">It must be less than 10 words</span>
+        </div>
+        <div class="form-group">
+            <label for="type">Type:*</label>
+            <select class="form-control" id="type" name="type">
+                <option value="">Select an option...</option>
+                <option value="Academic Institutions">Academic Institutions</option>
+                <option value="Donor">Donor</option>
+                <option value="Non-Governmental Organization">Non-Governmental Organization</option>
+                <option value="Research Institution">Research Institution</option>
+            </select>
+            <span id="msg_type" style="display: none;" class="label label-warning">Select one type</span>
+        </div>
+        <div class="form-group">
+            <label for="country">Country:*</label>
+            <select class="form-control" id="country" name="country">
+                <option value="">Select an option...</option>
+                <option th:each="country : ${countries}" th:value="${country}" th:text="${country}"></option>
+            </select>
+            <span id="msg_country" style="display: none;" class="label label-warning">Select one country</span>
+        </div>
+        <div class="form-group">
+            <label for="city">City:*</label>
+            <input type="text" class="form-control" id="city" name="city" placeholder="City">
+            <span id="msg_city" style="display: none;" class="label label-warning">Indicate one city</span>
+        </div>
+        <div class="form-group">
+            <label for="website">If you know the partner website please paste the link below:</label>
+            <input type="text" class="form-control" id="website" name="website" placeholder="Website">
+            <span id="msg_website" style="display: none;" class="label label-warning">The URL must start with http or https</span>
+        </div>
+        <button type="submit" class="btn btn-info">
+            <span class="glyphicon glyphicon-send" aria-hidden="true"></span>
+            Request add new partner
+        </button>
+        <span id="formResult" class="label" style="display:none;"></span>
+    </form>
+
+    <hr/>
+
+    <!-- List of Institutions/Branches -->
+    <h3>List of institutions and branches</h3>
+    <table id="institutionsTable" class="display" style="width:100%">
+        <thead>
+        <tr>
+            <th>Headquarter</th>
+            <th>Acronym</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>City</th>
+            <th>Country</th>
+            <th>Website</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script>
+    function loadInstitutionsTable(){
+        $.get('/api/requests/all', function(data) {
+            var $tableBody = $('#institutionsTable tbody');
+            $tableBody.empty();
+            $.each(data, function(i, inst) {
+                var row = '<tr>' +
+                    '<td>' + (inst.headquarter || '') + '</td>' +
+                    '<td>' + (inst.acronym || '') + '</td>' +
+                    '<td>' + (inst.name || '') + '</td>' +
+                    '<td>' + (inst.type || '') + '</td>' +
+                    '<td>' + (inst.city || '') + '</td>' +
+                    '<td>' + (inst.country || '') + '</td>' +
+                    '<td>' + (inst.website ? '<a href="' + inst.website + '" target="_blank">' + inst.website + '</a>' : '') + '</td>' +
+                    '</tr>';
+                $tableBody.append(row);
+            });
+            // Destroy and re-initialize DataTable
+            if ($.fn.DataTable.isDataTable('#institutionsTable')) {
+                $('#institutionsTable').DataTable().destroy();
+            }
+            $('#institutionsTable').DataTable();
+        });
+    }
+
+    $(document).ready(function () {
+        // Do NOT initialize DataTable here!
+        // $('#institutionsTable').DataTable();
+
+        // Show/hide institution dropdown based on headquarter selection
+        $('#headquarter').change(function () {
+            if ($(this).val() === 'Yes') {
+                $('#div_institution').show();
+            } else {
+                $('#div_institution').hide();
+            }
+        });
+
+        // Populate countries dropdown from backend
+        $.get('/api/requests/countries', function(data) {
+            var $country = $('#country');
+            $.each(data, function(code, name) {
+                $country.append($('<option>', { value: name, text: name }));
+            });
+        });
+
+        loadInstitutionsTable();
+
+        // AJAX form submission
+        $('#requestForm').submit(function (e) {
+            e.preventDefault();
+            var formData = {
+                headquarter: $('#headquarter').val(),
+                institution: $('#institution').val(),
+                acronym: $('#acronym').val(),
+                name: $('#name').val(),
+                type: $('#type').val(),
+                country: $('#country').val(),
+                city: $('#city').val(),
+                website: $('#website').val()
+            };
+            $.ajax({
+                url: '/api/requests/save',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function (response) {
+                    $('#formResult').removeClass().addClass('label label-success').text(response).show();
+                    setTimeout(function () { location.reload(); }, 1000);
+                },
+                error: function (xhr) {
+                    $('#formResult').removeClass().addClass('label label-danger').text(xhr.responseText).show();
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
